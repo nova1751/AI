@@ -119,18 +119,14 @@ def buildtree(rows, scoref=entropy):
 def printtree(tree, indent=''):
     # 是否是叶节点
     if tree.results != None:
-        print
-        str(tree.results)
+        print(str(tree.results))
     else:
         # 打印判断条件
-        print
-        str(tree.col) + ":" + str(tree.value) + "? "
+        print(str(tree.col) + ":" + str(tree.value) + "? ")
         # 打印分支
-        print
-        indent + "T->",
+        print(indent + "T->",)
         printtree(tree.tb, indent + " ")
-        print
-        indent + "F->",
+        print(indent + "F->",)
         printtree(tree.fb, indent + " ")
 
 

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="20f15de5-c5fd-4525-b30d-0416e06a6cc6" name="变更" comment="">
-      <change afterPath="$PROJECT_DIR$/Notes/tasks/8-12.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="20f15de5-c5fd-4525-b30d-0416e06a6cc6" name="变更" comment="更新">
+      <change afterPath="$PROJECT_DIR$/Notes/tasks/8-13.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Notes/tasks/8-11.md" beforeDir="false" afterPath="$PROJECT_DIR$/Notes/tasks/8-11.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Notes/tasks/8-12.md" beforeDir="false" afterPath="$PROJECT_DIR$/Notes/tasks/8-12.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,6 +74,14 @@
       <option name="presentableId" value="Default" />
       <updated>1660223410130</updated>
     </task>
+    <task id="LOCAL-00001" summary="更新">
+      <created>1660355672654</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1660355672654</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -87,5 +94,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="更新" />
+    <option name="LAST_COMMIT_MESSAGE" value="更新" />
   </component>
 </project>
