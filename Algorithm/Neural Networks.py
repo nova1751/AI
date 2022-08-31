@@ -1,6 +1,7 @@
 #!/user/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
+from matplotlib import pyplot as plt
 
 
 def sigmoid(x):
@@ -61,6 +62,7 @@ class OurNeuralNetwork:
         '''
         learn_rate = 0.1
         epochs = 1000  # number of times to loop through the entire dataset
+        self.loss_list = [] # record the loss list
 
         for epoch in range(epochs):
             for x, y_true in zip(data, all_y_trues):
@@ -117,7 +119,15 @@ class OurNeuralNetwork:
             if epoch % 10 == 0:
                 y_preds = np.apply_along_axis(self.feedforward, 1, data)
                 loss = mse_loss(all_y_trues, y_preds)
+                self.loss_list.append(loss)
                 print("Epoch %d loss: %.3f" % (epoch, loss))
+
+    def Pic(self):
+        plt.plot(range(0, 1000, 10), self.loss_list)
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.title('Neural Network Loss vs. Epochs')
+        plt.show()
 
 
 # Define dataset
@@ -137,8 +147,10 @@ all_y_trues = np.array([
 # Train our neural network!
 network = OurNeuralNetwork()
 network.train(data, all_y_trues)
+network.Pic()
 
-emily = np.array([-7, -3])  # 128 pounds, 63 inches
-frank = np.array([20, 2])  # 155 pounds, 68 inches
-print("Emily: %.3f" % network.feedforward(emily))  # 0.951 - F
-print("Frank: %.3f" % network.feedforward(frank))  # 0.039 - M
+# # predict the results
+# emily = np.array([-7, -3])  # 128 pounds, 63 inches
+# frank = np.array([20, 2])  # 155 pounds, 68 inches
+# print("Emily: %.3f" % network.feedforward(emily))  # 0.951 - F
+# print("Frank: %.3f" % network.feedforward(frank))  # 0.039 - M
