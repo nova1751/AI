@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 
 # torch.manual_seed(1)    # reproducible
 
-x = torch.unsqueeze(torch.linspace(-1, 1, 100), dim=1)  # x data (tensor), shape=(100, 1)
+x = torch.unsqueeze(torch.linspace(-1, 1, 100), dim=1)  # torch.linspace(start,end,step:分割多少个点，注意算间隔需要减一，)
+# torch.unsqueeze()用来提升维度dim=0提升行,dim=1提升列
 y = x.pow(2) + 0.2 * torch.rand(x.size())  # noisy y data (tensor), shape=(100, 1)
 
 
@@ -26,7 +27,7 @@ y = x.pow(2) + 0.2 * torch.rand(x.size())  # noisy y data (tensor), shape=(100, 
 class Net(torch.nn.Module):
     def __init__(self, n_feature, n_hidden, n_output):
         super(Net, self).__init__()
-        self.hidden = torch.nn.Linear(n_feature, n_hidden)  # hidden layer
+        self.hidden = torch.nn.Linear(n_feature, n_hidden)  # hidden layer torch.nn.Linear(输入特征数，输出特征数)
         self.predict = torch.nn.Linear(n_hidden, n_output)  # output layer
 
     def forward(self, x):
