@@ -1,21 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="20f15de5-c5fd-4525-b30d-0416e06a6cc6" name="变更" comment="更新文件">
-      <change afterPath="$PROJECT_DIR$/Algorithm/NEW/Bayes.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Deep Learning/Pytorch/Upper/mnist/MNIST/raw/t10k-images-idx3-ubyte" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Deep Learning/Pytorch/Upper/mnist/MNIST/raw/t10k-images-idx3-ubyte.gz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Deep Learning/Pytorch/Upper/mnist/MNIST/raw/t10k-labels-idx1-ubyte" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Deep Learning/Pytorch/Upper/mnist/MNIST/raw/t10k-labels-idx1-ubyte.gz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Deep Learning/Pytorch/Upper/mnist/MNIST/raw/train-images-idx3-ubyte" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Deep Learning/Pytorch/Upper/mnist/MNIST/raw/train-images-idx3-ubyte.gz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Deep Learning/Pytorch/Upper/mnist/MNIST/raw/train-labels-idx1-ubyte" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Deep Learning/Pytorch/Upper/mnist/MNIST/raw/train-labels-idx1-ubyte.gz" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Algorithm/NEW/DecisionTree.py" beforeDir="false" afterPath="$PROJECT_DIR$/Algorithm/NEW/DecisionTree.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Algorithm/NEW/KNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/Algorithm/NEW/KNN.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Algorithm/Test/1.py" beforeDir="false" afterPath="$PROJECT_DIR$/Algorithm/Test/1.py" afterDir="false" />
-    </list>
+    <list default="true" id="20f15de5-c5fd-4525-b30d-0416e06a6cc6" name="变更" comment="更新文件" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -237,7 +223,14 @@
       <option name="project" value="LOCAL" />
       <updated>1663038900502</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="更新文件">
+      <created>1663038935381</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1663038935381</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
