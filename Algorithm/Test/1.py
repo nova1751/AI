@@ -147,7 +147,7 @@ def classifyNB(vec2Classify, p0Vec, p1Vec, pClass1):
     使用算法:
         # 将乘法转换为加法
         乘法: P(C|F1F2...Fn) = P(F1F2...Fn|C)P(C)/P(F1F2...Fn)
-        加法: P(F1|C)*P(F2|C)....P(Fn|C)P(C) -> log(P(F1|C))+log(P(F2|C))+....+log(P(Fn|C))+log(P(C))
+        加法: P(F1|C)*P(F2|C)....P(Fn|C)P(C) -> log(P(F1|C))+log(P(F2|C))+....+log(P(Fn|C))+log(P(C)) 假设几个变量之间相互独立
     :param vec2Classify: 待测数据[0,1,1,1,1...]，即要分类的向量
     :param p0Vec: 类别0，即正常文档的[log(P(F1|C0)),log(P(F2|C0)),log(P(F3|C0)),log(P(F4|C0)),log(P(F5|C0))....]列表
     :param p1Vec: 类别1，即侮辱性文档的[log(P(F1|C1)),log(P(F2|C1)),log(P(F3|C1)),log(P(F4|C1)),log(P(F5|C1))....]列表
@@ -351,6 +351,6 @@ def getTopWords(ny,sf):
 
 
 if __name__ == "__main__":
-    # testingNB()
-    spamTest()
+    testingNB()
+    # spamTest()
     # laTest()

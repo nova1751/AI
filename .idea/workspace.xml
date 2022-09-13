@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="20f15de5-c5fd-4525-b30d-0416e06a6cc6" name="变更" comment="更新">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Algorithm/NEW/Bayes.py" beforeDir="false" afterPath="$PROJECT_DIR$/Algorithm/NEW/bayes.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -233,7 +232,14 @@
       <option name="project" value="LOCAL" />
       <updated>1663038935381</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="更新文件">
+      <created>1663039014105</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1663039014105</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

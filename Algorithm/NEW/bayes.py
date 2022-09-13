@@ -1,7 +1,9 @@
 #!/user/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 from numpy import *
-from math import log
+# from math import log
+
 
 def loadDataSet():
     """
@@ -37,7 +39,7 @@ def setOfWords2Vec(vocabList, inputSet):
 
 def trainNB0(trainMatrix, trainCategory):
     numTrainDocs = len(trainMatrix)
-    numWords = sum(trainMatrix[0])
+    numWords = len(trainMatrix[0])
     pAbusive = sum(trainCategory) / float(numTrainDocs)
     p0num = ones((1, numWords))
     p1num = ones((1, numWords))
@@ -53,6 +55,7 @@ def trainNB0(trainMatrix, trainCategory):
     p1Vect = log(p1num / p1Denom)
     p0Vect = log(p0num / p0Denom)
     return p0Vect, p1Vect, pAbusive
+
 
 def _trainNB0(trainMatrix, trainCategory):
     numTrainDocs = len(trainMatrix)
@@ -72,3 +75,30 @@ def _trainNB0(trainMatrix, trainCategory):
     p1Vect = p1num / p1Denom
     p0Vect = p0num / p0Denom
     return p0Vect, p1Vect, pAbusive
+
+
+def classifyNB(vec2Classify, p0Vec, p1Vec, pClass1):
+    p1 = sum(vec2Classify * p1Vec) + log(pClass1)
+    p0 = sum(vec2Classify * p0Vec) + log(1.0 - pClass1)
+    if p1 > p0:
+        return 1
+    else:
+        return 0
+
+
+def testingNB():
+    listOPosts, listClass = loadDataSet()
+    myVocabList = createVocabList(listOPosts)
+    trainMat = []
+    for postinDoc in listOPosts:
+        trainMat.append(setOfWords2Vec(myVocabList, postinDoc))
+    p0v, p1v, pAb = trainNB0(array(trainMat), array(listClass))
+    testEntry = ['love', 'my', 'dalmation']
+    thisDoc = array(setOfWords2Vec(myVocabList, testEntry))
+    print(testEntry, 'classified as', classifyNB(thisDoc, p0v, p1v, pAb))
+    testEntry2 = ['stupid', 'garbage']
+    thisDoc2 = array(setOfWords2Vec(myVocabList, testEntry2))
+    print(testEntry2, 'classified as', classifyNB(thisDoc2, p0v, p1v, pAb))
+
+if __name__ == '__main__':
+    testingNB()
