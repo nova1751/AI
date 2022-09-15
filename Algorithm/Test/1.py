@@ -206,7 +206,7 @@ def bagging_predict(trees, row):
 
     Args:
         trees           决策树的集合
-        row             测试数据集的每一行数据
+            row             测试数据集的每一行数据
     Returns:
         返回随机森林中，决策树结果出现次数做大的
     """
