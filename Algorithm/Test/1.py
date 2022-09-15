@@ -1,356 +1,347 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
+#!/usr/bin/python
+# coding:utf8
+
 '''
-Created on Oct 19, 2010
+Created 2017-04-25
 Update  on 2017-05-18
-Author: Peter Harrington/羊三/小瑶
+Random Forest Algorithm on Sonar Dataset
+Author: Flying_sfeng/片刻
 GitHub: https://github.com/apachecn/AiLearning
+---
+源代码网址: http://www.tuicool.com/articles/iiUfeim
+Flying_sfeng博客地址: http://blog.csdn.net/flying_sfeng/article/details/64133822 (感谢作者贡献)
 '''
 from __future__ import print_function
-from numpy import *
-"""
-p(xy)=p(x|y)p(y)=p(y|x)p(x)
-p(x|y)=p(y|x)p(x)/p(y)
-"""
+from random import seed, randrange, random
 
 
-# 项目案例1: 屏蔽社区留言板的侮辱性言论
+# 导入csv文件
+def loadDataSet(filename):
+    dataset = []
+    with open(filename, 'r') as fr:
+        for line in fr.readlines():
+            if not line:
+                continue
+            lineArr = []
+            for featrue in line.split(','):
+                # strip()返回移除字符串头尾指定的字符生成的新字符串
+                str_f = featrue.strip()
 
-def loadDataSet():
+                # isdigit 如果是浮点型数值，就是 false，所以换成 isalpha() 函数
+                # if str_f.isdigit():   # 判断是否是数字
+                if str_f.isalpha():     # 如果是字母，说明是标签
+                    # 添加分类标签
+                    lineArr.append(str_f)
+                else:
+                    # 将数据集的第column列转换成float形式
+                    lineArr.append(float(str_f))
+            dataset.append(lineArr)
+    return dataset
+
+
+def cross_validation_split(dataset, n_folds):
+    """cross_validation_split(将数据集进行抽重抽样 n_folds 份，数据可以重复重复抽取，每一次list的元素是无重复的)
+
+    Args:
+        dataset     原始数据集
+        n_folds     数据集dataset分成n_flods份
+    Returns:
+        dataset_split    list集合，存放的是: 将数据集进行抽重抽样 n_folds 份，数据可以重复重复抽取，每一次list的元素是无重复的
     """
-    创建数据集
-    :return: 单词列表postingList, 所属类别classVec
-    """
-    postingList = [['my', 'dog', 'has', 'flea', 'problems', 'help', 'please'], #[0,0,1,1,1......]
-                   ['maybe', 'not', 'take', 'him', 'to', 'dog', 'park', 'stupid'],
-                   ['my', 'dalmation', 'is', 'so', 'cute', 'I', 'love', 'him'],
-                   ['stop', 'posting', 'stupid', 'worthless', 'garbage'],
-                   ['mr', 'licks', 'ate', 'my', 'steak', 'how', 'to', 'stop', 'him'],
-                   ['quit', 'buying', 'worthless', 'dog', 'food', 'stupid']]
-    classVec = [0, 1, 0, 1, 0, 1]  # 1 is abusive, 0 not
-    return postingList, classVec
+    dataset_split = list()
+    dataset_copy = list(dataset)       # 复制一份 dataset,防止 dataset 的内容改变
+    fold_size = len(dataset) / n_folds
+    for i in range(n_folds):
+        fold = list()                  # 每次循环 fold 清零，防止重复导入 dataset_split
+        while len(fold) < fold_size:   # 这里不能用 if，if 只是在第一次判断时起作用，while 执行循环，直到条件不成立
+            # 有放回的随机采样，有一些样本被重复采样，从而在训练集中多次出现，有的则从未在训练集中出现，此则自助采样法。从而保证每棵决策树训练集的差异性
+            index = randrange(len(dataset_copy))
+            # 将对应索引 index 的内容从 dataset_copy 中导出，并将该内容从 dataset_copy 中删除。
+            # pop() 函数用于移除列表中的一个元素（默认最后一个元素），并且返回该元素的值。
+            # fold.append(dataset_copy.pop(index))  # 无放回的方式
+            fold.append(dataset_copy[index])  # 有放回的方式
+        dataset_split.append(fold)
+    # 由dataset分割出的n_folds个数据构成的列表，为了用于交叉验证
+    return dataset_split
 
 
-def createVocabList(dataSet):
-    """
-    获取所有单词的集合
-    :param dataSet: 数据集
-    :return: 所有单词的集合(即不含重复元素的单词列表)
-    """
-    vocabSet = set([])  # create empty set
-    for document in dataSet:
-        # 操作符 | 用于求两个集合的并集
-        vocabSet = vocabSet | set(document)  # union of the two sets
-    return list(vocabSet)
-
-
-def setOfWords2Vec(vocabList, inputSet):
-    """
-    遍历查看该单词是否出现，出现该单词则将该单词置1
-    :param vocabList: 所有单词集合列表
-    :param inputSet: 输入数据集
-    :return: 匹配列表[0,1,0,1...]，其中 1与0 表示词汇表中的单词是否出现在输入的数据集中
-    """
-    # 创建一个和词汇表等长的向量，并将其元素都设置为0
-    returnVec = [0] * len(vocabList)# [0,0......]
-    # 遍历文档中的所有单词，如果出现了词汇表中的单词，则将输出的文档向量中的对应值设为1
-    for word in inputSet:
-        if word in vocabList:
-            returnVec[vocabList.index(word)] = 1
+# Split a dataset based on an attribute and an attribute value # 根据特征和特征值分割数据集
+def test_split(index, value, dataset):
+    left, right = list(), list()
+    for row in dataset:
+        if row[index] < value:
+            left.append(row)
         else:
-            print("the word: %s is not in my Vocabulary!" % word)
-    return returnVec
+            right.append(row)
+    return left, right
 
 
-def _trainNB0(trainMatrix, trainCategory):
-    """
-    训练数据原版
-    :param trainMatrix: 文件单词矩阵 [[1,0,1,1,1....],[],[]...]
-    :param trainCategory: 文件对应的类别[0,1,1,0....]，列表长度等于单词矩阵数，其中的1代表对应的文件是侮辱性文件，0代表不是侮辱性矩阵
-    :return:
-    """
-    # 文件数
-    numTrainDocs = len(trainMatrix)
-    # 单词数
-    numWords = len(trainMatrix[0])
-    # 侮辱性文件的出现概率，即trainCategory中所有的1的个数，
-    # 代表的就是多少个侮辱性文件，与文件的总数相除就得到了侮辱性文件的出现概率
-    pAbusive = sum(trainCategory) / float(numTrainDocs)
-    # 构造单词出现次数列表
-    p0Num = zeros(numWords) # [0,0,0,.....]
-    p1Num = zeros(numWords) # [0,0,0,.....]
+'''
+Gini指数的计算问题，假如将原始数据集D切割两部分，分别为D1和D2，则
+Gini(D|切割) = (|D1|/|D| ) * Gini(D1) + (|D2|/|D|) * Gini(D2)
+学习地址: 
+    http://bbs.pinggu.org/thread-5986969-1-1.html
+    http://www.cnblogs.com/pinard/p/6053344.html
+而原文中 计算方式为: 
+Gini(D|切割) = Gini(D1) + Gini(D2)
 
-    # 整个数据集单词出现总数
-    p0Denom = 0.0
-    p1Denom = 0.0
-    for i in range(numTrainDocs):
-        # 遍历所有的文件，如果是侮辱性文件，就计算此侮辱性文件中出现的侮辱性单词的个数
-        if trainCategory[i] == 1:
-            p1Num += trainMatrix[i] #[0,1,1,....]->[0,1,1,...]
-            p1Denom += sum(trainMatrix[i])
-        else:
-            # 如果不是侮辱性文件，则计算非侮辱性文件中出现的侮辱性单词的个数
-            p0Num += trainMatrix[i]
-            p0Denom += sum(trainMatrix[i])
-    # 类别1，即侮辱性文档的[P(F1|C1),P(F2|C1),P(F3|C1),P(F4|C1),P(F5|C1)....]列表
-    # 即 在1类别下，每个单词出现次数的占比
-    p1Vect = p1Num / p1Denom# [1,2,3,5]/90->[1/90,...]
-    # 类别0，即正常文档的[P(F1|C0),P(F2|C0),P(F3|C0),P(F4|C0),P(F5|C0)....]列表
-    # 即 在0类别下，每个单词出现次数的占比
-    p0Vect = p0Num / p0Denom
-    return p0Vect, p1Vect, pAbusive
+# Calculate the Gini index for a split dataset
+def gini_index(groups, class_values):    # 个人理解: 计算代价，分类越准确，则 gini 越小
+    gini = 0.0
+    for class_value in class_values:     # class_values = [0, 1] 
+        for group in groups:             # groups = (left, right)
+            size = len(group)
+            if size == 0:
+                continue
+            proportion = [row[-1] for row in group].count(class_value) / float(size)
+            gini += (proportion * (1.0 - proportion))    # 个人理解: 计算代价，分类越准确，则 gini 越小
+    return gini
+'''
 
 
-def trainNB0(trainMatrix, trainCategory):
-    """
-    训练数据优化版本
-    :param trainMatrix: 文件单词矩阵
-    :param trainCategory: 文件对应的类别
-    :return:
-    """
-    # 总文件数
-    numTrainDocs = len(trainMatrix)
-    # 总单词数
-    numWords = len(trainMatrix[0])
-    # 侮辱性文件的出现概率
-    pAbusive = sum(trainCategory) / float(numTrainDocs)
-    # 构造单词出现次数列表
-    # p0Num 正常的统计
-    # p1Num 侮辱的统计
-    # 避免单词列表中的任何一个单词为0，而导致最后的乘积为0，所以将每个单词的出现次数初始化为 1
-    p0Num = ones(numWords)#[0,0......]->[1,1,1,1,1.....]
-    p1Num = ones(numWords)
-
-    # 整个数据集单词出现总数，2.0根据样本/实际调查结果调整分母的值（2主要是避免分母为0，当然值可以调整）
-    # p0Denom 正常的统计
-    # p1Denom 侮辱的统计
-    p0Denom = 2.0
-    p1Denom = 2.0
-    for i in range(numTrainDocs):
-        if trainCategory[i] == 1:
-            # 累加辱骂词的频次
-            p1Num += trainMatrix[i]
-            # 对每篇文章的辱骂的频次 进行统计汇总
-            p1Denom += sum(trainMatrix[i])
-        else:
-            p0Num += trainMatrix[i]
-            p0Denom += sum(trainMatrix[i])
-    # 类别1，即侮辱性文档的[log(P(F1|C1)),log(P(F2|C1)),log(P(F3|C1)),log(P(F4|C1)),log(P(F5|C1))....]列表
-    p1Vect = log(p1Num / p1Denom)
-    # 类别0，即正常文档的[log(P(F1|C0)),log(P(F2|C0)),log(P(F3|C0)),log(P(F4|C0)),log(P(F5|C0))....]列表
-    p0Vect = log(p0Num / p0Denom)
-    return p0Vect, p1Vect, pAbusive
+def gini_index(groups, class_values):    # 个人理解: 计算代价，分类越准确，则 gini 越小
+    gini = 0.0
+    D = len(groups[0]) + len(groups[1])
+    for class_value in class_values:     # class_values = [0, 1]
+        for group in groups:             # groups = (left, right)
+            size = len(group)
+            if size == 0:
+                continue
+            proportion = [row[-1] for row in group].count(class_value) / float(size)
+            gini += float(size)/D * (proportion * (1.0 - proportion))    # 个人理解: 计算代价，分类越准确，则 gini 越小
+    return gini
 
 
-def classifyNB(vec2Classify, p0Vec, p1Vec, pClass1):
-    """
-    使用算法:
-        # 将乘法转换为加法
-        乘法: P(C|F1F2...Fn) = P(F1F2...Fn|C)P(C)/P(F1F2...Fn)
-        加法: P(F1|C)*P(F2|C)....P(Fn|C)P(C) -> log(P(F1|C))+log(P(F2|C))+....+log(P(Fn|C))+log(P(C)) 假设几个变量之间相互独立
-    :param vec2Classify: 待测数据[0,1,1,1,1...]，即要分类的向量
-    :param p0Vec: 类别0，即正常文档的[log(P(F1|C0)),log(P(F2|C0)),log(P(F3|C0)),log(P(F4|C0)),log(P(F5|C0))....]列表
-    :param p1Vec: 类别1，即侮辱性文档的[log(P(F1|C1)),log(P(F2|C1)),log(P(F3|C1)),log(P(F4|C1)),log(P(F5|C1))....]列表
-    :param pClass1: 类别1，侮辱性文件的出现概率
-    :return: 类别1 or 0
-    """
-    # 计算公式  log(P(F1|C))+log(P(F2|C))+....+log(P(Fn|C))+log(P(C))
-    # 使用 NumPy 数组来计算两个向量相乘的结果，这里的相乘是指对应元素相乘，即先将两个向量中的第一个元素相乘，然后将第2个元素相乘，以此类推。
-    # 我的理解是: 这里的 vec2Classify * p1Vec 的意思就是将每个词与其对应的概率相关联起来
-    # 可以理解为 1.单词在词汇表中的条件下，文件是good 类别的概率 也可以理解为 2.在整个空间下，文件既在词汇表中又是good类别的概率
-    p1 = sum(vec2Classify * p1Vec) + log(pClass1)
-    p0 = sum(vec2Classify * p0Vec) + log(1.0 - pClass1)
-    if p1 > p0:
-        return 1
+# 找出分割数据集的最优特征，得到最优的特征 index，特征值 row[index]，以及分割完的数据 groups（left, right）
+def get_split(dataset, n_features):
+    class_values = list(set(row[-1] for row in dataset))  # class_values =[0, 1]
+    b_index, b_value, b_score, b_groups = 999, 999, 999, None
+    features = list()
+    while len(features) < n_features:
+        index = randrange(len(dataset[0])-1)  # 往 features 添加 n_features 个特征（ n_feature 等于特征数的根号），特征索引从 dataset 中随机取
+        if index not in features:
+            features.append(index)
+    for index in features:                    # 在 n_features 个特征中选出最优的特征索引，并没有遍历所有特征，从而保证了每课决策树的差异性
+        for row in dataset:
+            groups = test_split(index, row[index], dataset)  # groups=(left, right), row[index] 遍历每一行 index 索引下的特征值作为分类值 value, 找出最优的分类特征和特征值
+            gini = gini_index(groups, class_values)
+            # 左右两边的数量越一样，说明数据区分度不高，gini系数越大
+            if gini < b_score:
+                b_index, b_value, b_score, b_groups = index, row[index], gini, groups  # 最后得到最优的分类特征 b_index,分类特征值 b_value,分类结果 b_groups。b_value 为分错的代价成本
+    # print b_score
+    return {'index': b_index, 'value': b_value, 'groups': b_groups}
+
+
+# Create a terminal node value # 输出group中出现次数较多的标签
+def to_terminal(group):
+    outcomes = [row[-1] for row in group]           # max() 函数中，当 key 参数不为空时，就以 key 的函数对象为判断的标准
+    return max(set(outcomes), key=outcomes.count)   # 输出 group 中出现次数较多的标签
+
+
+# Create child splits for a node or make terminal  # 创建子分割器，递归分类，直到分类结束
+def split(node, max_depth, min_size, n_features, depth):  # max_depth = 10, min_size = 1, n_features=int(sqrt((len(dataset[0])-1)
+    left, right = node['groups']
+    del(node['groups'])
+# check for a no split
+    if not left or not right:
+        node['left'] = node['right'] = to_terminal(left + right)
+        return
+# check for max depth
+    if depth >= max_depth:   # max_depth=10 表示递归十次，若分类还未结束，则选取数据中分类标签较多的作为结果，使分类提前结束，防止过拟合
+        node['left'], node['right'] = to_terminal(left), to_terminal(right)
+        return
+# process left child
+    if len(left) <= min_size:
+        node['left'] = to_terminal(left)
     else:
-        return 0
+        node['left'] = get_split(left, n_features)  # node['left']是一个字典，形式为{'index':b_index, 'value':b_value, 'groups':b_groups}，所以node是一个多层字典
+        split(node['left'], max_depth, min_size, n_features, depth+1)  # 递归，depth+1计算递归层数
+# process right child
+    if len(right) <= min_size:
+        node['right'] = to_terminal(right)
+    else:
+        node['right'] = get_split(right, n_features)
+        split(node['right'], max_depth, min_size, n_features, depth+1)
 
 
-def bagOfWords2VecMN(vocabList, inputSet):
-    returnVec = [0] * len(vocabList)
-    for word in inputSet:
-        if word in vocabList:
-            returnVec[vocabList.index(word)] += 1
-    return returnVec
+# Build a decision tree
+def build_tree(train, max_depth, min_size, n_features):
+    """build_tree(创建一个决策树)
 
-
-def testingNB():
-    """
-    测试朴素贝叶斯算法
-    """
-    # 1. 加载数据集
-    listOPosts, listClasses = loadDataSet()
-    # 2. 创建单词集合
-    myVocabList = createVocabList(listOPosts)
-    # 3. 计算单词是否出现并创建数据矩阵
-    trainMat = []
-    for postinDoc in listOPosts:
-        # 返回m*len(myVocabList)的矩阵， 记录的都是0，1信息
-        trainMat.append(setOfWords2Vec(myVocabList, postinDoc))
-    # 4. 训练数据
-    p0V, p1V, pAb = trainNB0(array(trainMat), array(listClasses))
-    # 5. 测试数据
-    testEntry = ['love', 'my', 'dalmation']
-    thisDoc = array(setOfWords2Vec(myVocabList, testEntry))
-    print(testEntry, 'classified as: ', classifyNB(thisDoc, p0V, p1V, pAb))
-    testEntry = ['stupid', 'garbage']
-    thisDoc = array(setOfWords2Vec(myVocabList, testEntry))
-    print(testEntry, 'classified as: ', classifyNB(thisDoc, p0V, p1V, pAb))
-
-
-# ------------------------------------------------------------------------------------------
-# 项目案例2: 使用朴素贝叶斯过滤垃圾邮件
-
-# 切分文本
-def textParse(bigString):
-    '''
-    Desc:
-        接收一个大字符串并将其解析为字符串列表
     Args:
-        bigString -- 大字符串
+        train           训练数据集
+        max_depth       决策树深度不能太深，不然容易导致过拟合
+        min_size        叶子节点的大小
+        n_features      选取的特征的个数
     Returns:
-        去掉少于 2 个字符的字符串，并将所有字符串转换为小写，返回字符串列表
-    '''
-    import re
-    # 使用正则表达式来切分句子，其中分隔符是除单词、数字外的任意字符串
-    listOfTokens = re.split(r'\W*', bigString)
-    return [tok.lower() for tok in listOfTokens if len(tok) > 2]
+        root            返回决策树
+    """
+
+    # 返回最优列和相关的信息
+    root = get_split(train, n_features)
+
+    # 对左右2边的数据 进行递归的调用，由于最优特征使用过，所以在后面进行使用的时候，就没有意义了
+    # 例如:  性别-男女，对男使用这一特征就没任何意义了
+    split(root, max_depth, min_size, n_features, 1)
+    return root
 
 
-def spamTest():
-    '''
-    Desc:
-        对贝叶斯垃圾邮件分类器进行自动化处理。
+# Make a prediction with a decision tree
+def predict(node, row):   # 预测模型分类结果
+    if row[node['index']] < node['value']:
+        if isinstance(node['left'], dict):       # isinstance 是 Python 中的一个内建函数。是用来判断一个对象是否是一个已知的类型。
+            return predict(node['left'], row)
+        else:
+            return node['left']
+    else:
+        if isinstance(node['right'], dict):
+            return predict(node['right'], row)
+        else:
+            return node['right']
+
+
+# Make a prediction with a list of bagged trees
+def bagging_predict(trees, row):
+    """bagging_predict(bagging预测)
+
     Args:
-        none
+        trees           决策树的集合
+        row             测试数据集的每一行数据
     Returns:
-        对测试集中的每封邮件进行分类，若邮件分类错误，则错误数加 1，最后返回总的错误百分比。
-    '''
-    docList = []
-    classList = []
-    fullText = []
-    for i in range(1, 26):
-        # 切分，解析数据，并归类为 1 类别
-        wordList = textParse(open('data/4.NaiveBayes/email/spam/%d.txt' % i).read())
-        docList.append(wordList)
-        classList.append(1)
-        # 切分，解析数据，并归类为 0 类别
-        wordList = textParse(open('data/4.NaiveBayes/email/ham/%d.txt' % i).read())
-        docList.append(wordList)
-        fullText.extend(wordList)
-        classList.append(0)
-    # 创建词汇表
-    vocabList = createVocabList(docList)
-    trainingSet = range(50)
-    testSet = []
-    # 随机取 10 个邮件用来测试
-    for i in range(10):
-        # random.uniform(x, y) 随机生成一个范围为 x - y 的实数
-        randIndex = int(random.uniform(0, len(trainingSet)))
-        testSet.append(trainingSet[randIndex])
-        del(trainingSet[randIndex])
-    trainMat = []
-    trainClasses = []
-    for docIndex in trainingSet:
-        trainMat.append(setOfWords2Vec(vocabList, docList[docIndex]))
-        trainClasses.append(classList[docIndex])
-    p0V, p1V, pSpam = trainNB0(array(trainMat), array(trainClasses))
-    errorCount = 0
-    for docIndex in testSet:
-        wordVector = setOfWords2Vec(vocabList, docList[docIndex])
-        if classifyNB(array(wordVector), p0V, p1V, pSpam) != classList[docIndex]:
-            errorCount += 1
-    print('the errorCount is: ', errorCount)
-    print('the testSet length is :', len(testSet))
-    print('the error rate is :', float(errorCount)/len(testSet))
+        返回随机森林中，决策树结果出现次数做大的
+    """
+
+    # 使用多个决策树trees对测试集test的第row行进行预测，再使用简单投票法判断出该行所属分类
+    predictions = [predict(tree, row) for tree in trees]
+    return max(set(predictions), key=predictions.count)
 
 
-def testParseTest():
-    print(textParse(open('data/4.NaiveBayes/email/ham/1.txt').read()))
+# Create a random subsample from the dataset with replacement
+def subsample(dataset, ratio):   # 创建数据集的随机子样本
+    """random_forest(评估算法性能，返回模型得分)
+
+    Args:
+        dataset         训练数据集
+        ratio           训练数据集的样本比例
+    Returns:
+        sample          随机抽样的训练样本
+    """
+
+    sample = list()
+    # 训练样本的按比例抽样。
+    # round() 方法返回浮点数x的四舍五入值。
+    n_sample = round(len(dataset) * ratio)
+    while len(sample) < n_sample:
+        # 有放回的随机采样，有一些样本被重复采样，从而在训练集中多次出现，有的则从未在训练集中出现，此则自助采样法。从而保证每棵决策树训练集的差异性
+        index = randrange(len(dataset))
+        sample.append(dataset[index])
+    return sample
 
 
-# -----------------------------------------------------------------------------------
-# 项目案例3: 使用朴素贝叶斯从个人广告中获取区域倾向
+# Random Forest Algorithm
+def random_forest(train, test, max_depth, min_size, sample_size, n_trees, n_features):
+    """random_forest(评估算法性能，返回模型得分)
 
-# 将文本文件解析成 词条向量
-def setOfWords2VecMN(vocabList,inputSet):
-    returnVec=[0]*len(vocabList)  # 创建一个其中所含元素都为0的向量
-    for word in inputSet:
-        if word in vocabList:
-                returnVec[vocabList.index(word)]+=1
-    return returnVec
+    Args:
+        train           训练数据集
+        test            测试数据集
+        max_depth       决策树深度不能太深，不然容易导致过拟合
+        min_size        叶子节点的大小
+        sample_size     训练数据集的样本比例
+        n_trees         决策树的个数
+        n_features      选取的特征的个数
+    Returns:
+        predictions     每一行的预测结果，bagging 预测最后的分类结果
+    """
 
+    trees = list()
+    # n_trees 表示决策树的数量
+    for i in range(n_trees):
+        # 随机抽样的训练样本， 随机采样保证了每棵决策树训练集的差异性
+        sample = subsample(train, sample_size)
+        # 创建一个决策树
+        tree = build_tree(sample, max_depth, min_size, n_features)
+        trees.append(tree)
 
-#文件解析
-def textParse(bigString):
-    import re
-    listOfTokens=re.split(r'\W*', bigString)
-    return [tok.lower() for tok in listOfTokens if len(tok)>2]
-
-
-#RSS源分类器及高频词去除函数
-def calcMostFreq(vocabList,fullText):
-    import operator
-    freqDict={}
-    for token in vocabList:  #遍历词汇表中的每个词
-        freqDict[token]=fullText.count(token)  #统计每个词在文本中出现的次数
-    sortedFreq=sorted(freqDict.iteritems(),key=operator.itemgetter(1),reverse=True)  #根据每个词出现的次数从高到底对字典进行排序
-    return sortedFreq[:30]   #返回出现次数最高的30个单词
-def localWords(feed1,feed0):
-
-    docList=[];classList=[];fullText=[]
-    minLen=min(len(feed1['entries']),len(feed0['entries']))
-    for i in range(minLen):
-        wordList=textParse(feed1['entries'][i]['summary'])   #每次访问一条RSS源
-        docList.append(wordList)
-        fullText.extend(wordList)
-        classList.append(1)
-        wordList=textParse(feed0['entries'][i]['summary'])
-        docList.append(wordList)
-        fullText.extend(wordList)
-        classList.append(0)
-    vocabList=createVocabList(docList)
-    top30Words=calcMostFreq(vocabList,fullText)
-    for pairW in top30Words:
-        if pairW[0] in vocabList:vocabList.remove(pairW[0])    #去掉出现次数最高的那些词
-    trainingSet=range(2*minLen);testSet=[]
-    for i in range(20):
-        randIndex=int(random.uniform(0,len(trainingSet)))
-        testSet.append(trainingSet[randIndex])
-        del(trainingSet[randIndex])
-    trainMat=[];trainClasses=[]
-    for docIndex in trainingSet:
-        trainMat.append(bagOfWords2VecMN(vocabList,docList[docIndex]))
-        trainClasses.append(classList[docIndex])
-    p0V,p1V,pSpam=trainNB0(array(trainMat),array(trainClasses))
-    errorCount=0
-    for docIndex in testSet:
-        wordVector=bagOfWords2VecMN(vocabList,docList[docIndex])
-        if classifyNB(array(wordVector),p0V,p1V,pSpam)!=classList[docIndex]:
-            errorCount+=1
-    print('the error rate is:',float(errorCount)/len(testSet))
-    return vocabList,p0V,p1V
+    # 每一行的预测结果，bagging 预测最后的分类结果
+    predictions = [bagging_predict(trees, row) for row in test]
+    return predictions
 
 
-# 最具表征性的词汇显示函数
-def getTopWords(ny,sf):
-    import operator
-    vocabList,p0V,p1V=localWords(ny,sf)
-    topNY=[];topSF=[]
-    for i in range(len(p0V)):
-        if p0V[i]>-6.0:topSF.append((vocabList[i],p0V[i]))
-        if p1V[i]>-6.0:topNY.append((vocabList[i],p1V[i]))
-    sortedSF=sorted(topSF,key=lambda pair:pair[1],reverse=True)
-    print("SF**SF**SF**SF**SF**SF**SF**SF**SF**SF**SF**SF**SF**SF**")
-    for item in sortedSF:
-        print(item[0])
-    sortedNY=sorted(topNY,key=lambda pair:pair[1],reverse=True)
-    print("NY**NY**NY**NY**NY**NY**NY**NY**NY**NY**NY**NY**NY**NY**")
-    for item in sortedNY:
-        print(item[0])
+# Calculate accuracy percentage
+def accuracy_metric(actual, predicted):  # 导入实际值和预测值，计算精确度
+    correct = 0
+    for i in range(len(actual)):
+        if actual[i] == predicted[i]:
+            correct += 1
+    return correct / float(len(actual)) * 100.0
 
 
-if __name__ == "__main__":
-    testingNB()
-    # spamTest()
-    # laTest()
+# 评估算法性能，返回模型得分
+def evaluate_algorithm(dataset, algorithm, n_folds, *args):
+    """evaluate_algorithm(评估算法性能，返回模型得分)
+
+    Args:
+        dataset     原始数据集
+        algorithm   使用的算法
+        n_folds     数据的份数
+        *args       其他的参数
+    Returns:
+        scores      模型得分
+    """
+
+    # 将数据集进行抽重抽样 n_folds 份，数据可以重复重复抽取，每一次 list 的元素是无重复的
+    folds = cross_validation_split(dataset, n_folds)
+    scores = list()
+    # 每次循环从 folds 从取出一个 fold 作为测试集，其余作为训练集，遍历整个 folds ，实现交叉验证
+    for fold in folds:
+        train_set = list(folds)
+        train_set.remove(fold)
+        # 将多个 fold 列表组合成一个 train_set 列表, 类似 union all
+        """
+        In [20]: l1=[[1, 2, 'a'], [11, 22, 'b']]
+        In [21]: l2=[[3, 4, 'c'], [33, 44, 'd']]
+        In [22]: l=[]
+        In [23]: l.append(l1)
+        In [24]: l.append(l2)
+        In [25]: l
+        Out[25]: [[[1, 2, 'a'], [11, 22, 'b']], [[3, 4, 'c'], [33, 44, 'd']]]
+        In [26]: sum(l, [])
+        Out[26]: [[1, 2, 'a'], [11, 22, 'b'], [3, 4, 'c'], [33, 44, 'd']]
+        """
+        train_set = sum(train_set, [])
+        test_set = list()
+        # fold 表示从原始数据集 dataset 提取出来的测试集
+        for row in fold:
+            row_copy = list(row)
+            row_copy[-1] = None
+            test_set.append(row_copy)
+        predicted = algorithm(train_set, test_set, *args)
+        actual = [row[-1] for row in fold]
+
+        # 计算随机森林的预测结果的正确率
+        accuracy = accuracy_metric(actual, predicted)
+        scores.append(accuracy)
+    return scores
+
+
+if __name__ == '__main__':
+
+    # 加载数据
+    dataset = loadDataSet('data/7.RandomForest/sonar-all-data.txt')
+    # print dataset
+
+    n_folds = 5        # 分成5份数据，进行交叉验证
+    max_depth = 20     # 调参（自己修改） #决策树深度不能太深，不然容易导致过拟合
+    min_size = 1       # 决策树的叶子节点最少的元素数量
+    sample_size = 1.0  # 做决策树时候的样本的比例
+    # n_features = int((len(dataset[0])-1))
+    n_features = 15     # 调参（自己修改） #准确性与多样性之间的权衡
+    for n_trees in [1, 10, 20, 30, 40, 50]:  # 理论上树是越多越好
+        scores = evaluate_algorithm(dataset, random_forest, n_folds, max_depth, min_size, sample_size, n_trees, n_features)
+        # 每一次执行本文件时都能产生同一个随机数
+        seed(1)
+        print('random=', random())
+        print('Trees: %d' % n_trees)
+        print('Scores: %s' % scores)
+        print('Mean Accuracy: %.3f%%' % (sum(scores)/float(len(scores))))

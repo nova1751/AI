@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="20f15de5-c5fd-4525-b30d-0416e06a6cc6" name="变更" comment="更新文件">
-      <change afterPath="$PROJECT_DIR$/Algorithm/Resources/testSet.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Algorithm/NEW/randomForest.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Algorithm/Test/1.py" beforeDir="false" afterPath="$PROJECT_DIR$/Algorithm/Test/1.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,7 +46,7 @@
       <recent name="D:\Python\AI\Algorithm\Test" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.test3">
+  <component name="RunManager" selected="Python.1 (1)">
     <configuration name="1 (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Python" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -153,10 +154,10 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.1 (1)" />
         <item itemvalue="Python.test3" />
         <item itemvalue="Python.Logistic Regression" />
         <item itemvalue="Python.bayes" />
-        <item itemvalue="Python.1 (1)" />
         <item itemvalue="Python.DecisionTree" />
       </list>
     </recent_temporary>
@@ -254,7 +255,14 @@
       <option name="project" value="LOCAL" />
       <updated>1663141398842</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="更新文件">
+      <created>1663142743138</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1663142743138</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
