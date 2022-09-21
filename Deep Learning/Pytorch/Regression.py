@@ -8,6 +8,7 @@ matplotlib
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+from torch.autograd import Variable
 
 # torch.manual_seed(1)    # reproducible
 
@@ -19,7 +20,7 @@ y = x.pow(2) + 0.2 * torch.rand(x.size())  # noisy y data (tensor), shape=(100, 
 # torch can only train on Variable, so convert them to Variable
 # The code below is deprecated in Pytorch 0.4. Now, autograd directly supports tensors
 # x, y = Variable(x), Variable(y)
-
+#
 # plt.scatter(x.data.numpy(), y.data.numpy())
 # plt.show()
 
@@ -44,7 +45,7 @@ loss_func = torch.nn.MSELoss()  # this is for regression mean squared loss
 
 plt.ion()  # something about plotting
 
-for t in range(200):
+for t in range(500):
     prediction = net(x)  # input x and predict based on x
 
     loss = loss_func(prediction, y)  # must be (1. nn output, 2. target)
