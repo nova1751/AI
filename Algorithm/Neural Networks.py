@@ -62,7 +62,7 @@ class OurNeuralNetwork:
         '''
         learn_rate = 0.1
         epochs = 1000  # number of times to loop through the entire dataset
-        self.loss_list = [] # record the loss list
+        self.loss_list = []  # record the loss list
 
         for epoch in range(epochs):
             for x, y_true in zip(data, all_y_trues):

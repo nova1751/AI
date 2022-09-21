@@ -1,5 +1,4 @@
-import numpy as np
+import torch
+y = torch.linspace(10, 1, 10)
+print(y)
 
-a = np.array([[1, 2], [3, 4]])
-np.append(a,[1,1])
-print(a)
